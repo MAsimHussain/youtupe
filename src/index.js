@@ -11,7 +11,7 @@ Db_connection()
       console.log("DB connection error", error);
       throw error;
     });
-    app.listen(process.env.PORT || 8000, () => {
+    app.listen(process.env.PORT , () => {
       console.log("Server Connected Successfully!");
     });
   })

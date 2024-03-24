@@ -14,4 +14,9 @@ app.use(express.static("public"));
 // store data to client brower cookieParser  middleware
 app.use(cookieParser());
 
+// Import Routers
+import useRouters from "./Routes/user.routes.js";
+
+app.use("/api/v1/users", useRouters);
+
 export default app;

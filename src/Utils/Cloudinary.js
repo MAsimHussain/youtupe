@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-
+import fs from 'fs'
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -9,12 +9,13 @@ cloudinary.config({
 const uploadFileCloudinaryStore = async (localFilePath) => {
   try {
     if (!localFilePath) {
-      console.log("Failed To upload File");
+      console.log("Cover image not uploaded");
     } else {
       const response = await cloudinary.uploader.upload(localFilePath, {
         resource_type: "auto",
       });
-      console.log("File upload successfully!", response.url);
+      console.log("File upload successfully");
+      fs.unlinkSync(localFilePath);
       return response;
     }
   } catch (error) {
@@ -23,4 +24,4 @@ const uploadFileCloudinaryStore = async (localFilePath) => {
   }
 };
 
-export {uploadFileCloudinaryStore}
+export { uploadFileCloudinaryStore };

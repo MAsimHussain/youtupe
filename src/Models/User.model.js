@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import { Jwt } from "jsonwebtoken";
-import { bcrypt } from "bcrypt";
+import  Jwt  from "jsonwebtoken";
+import  bcrypt  from "bcrypt";
 import fs from "fs";
 const privateKey = fs.readFileSync("./private.key");
 const userSchema = new Schema(
@@ -48,9 +48,13 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.modified("password")) return next();
-  this.password = bcrypt.hash(this.password, 10);
-  next();
+  if (!this.isModified("password")) return next();
+  try {
+    this.password =  await bcrypt.hash(this.password, 10);
+    next()
+  } catch (error) {
+    console.log(error)
+  }
 });
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
