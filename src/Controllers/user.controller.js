@@ -1,9 +1,17 @@
 import asycHendler from "../Utils/asycHendler.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { User } from "../Models/User.model.js";
+import fs from "fs";
+import Jwt from "jsonwebtoken";
+const publicKey = fs.readFileSync("./public.key");
 import { ApiResponse } from "../Utils/ApiResponse.js";
-import CircularJSON from "circular-json";
 import { uploadFileCloudinaryStore as cloudinary } from "../Utils/Cloudinary.js";
+// option for more time user so define globlely
+const options = {
+  httpOnly: true,
+  secure: true,
+};
+
 const registerUser = asycHendler(async (req, res) => {
   //user details for frontend
   // validate - user or empty
@@ -122,7 +130,6 @@ const loginUser = asycHendler(async (req, res) => {
     "-password -refreshToken"
   );
 
-
   const options = {
     httpOnly: true,
     secure: true,
@@ -153,17 +160,57 @@ const logoutUser = asycHendler(async (req, res) => {
     },
     { new: true }
   );
-
-  const opetions = {
-    httpOnly: true,
-    secure,
-  };
+  const { accessToken, refreshToken } = await AccessToken_RefreshToke(
+    req.user._id
+  );
 
   return res
     .status(200)
-    .clearCookie("accessToke", accessToken, opetions)
-    .cookie("refreshToken", refreshToken, opetions)
+    .clearCookie("accessToken", accessToken, options)
+    .clearCookie("refreshToken", refreshToken, options)
     .json(new ApiResponse(200, {}, "user Logout Successfully!"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const refreshAccessToken = asycHendler(async (req, res) => {
+  const inCommingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+  if (!inCommingRefreshToken) {
+    throw new ApiError(401, "UnAuthorized user Request");
+  }
+
+  try {
+    const decodedToken = Jwt.verify(inCommingRefreshToken, publicKey);
+
+    if (!decodedToken) {
+      throw new ApiError(401, "UnAuthorized decoded  Request");
+    }
+
+    const user = await User.findById(decodedToken?._id);
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+    if (inCommingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, " Refresh Token Expire or used");
+    }
+    const { accessToken, refreshToken } = await AccessToken_RefreshToke(
+      user?._id
+    );
+    const response = new ApiResponse(
+      200,
+      {
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        success: true,
+      },
+      "AccessToken Refreshed"
+    );
+    return res
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(response);
+  } catch (error) {
+    throw new ApiError(404, error.message || "Invalid User Request");
+  }
+});
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
