@@ -1,12 +1,15 @@
 import asycHendler from "../Utils/asycHendler.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { User } from "../Models/User.model.js";
-import fs from "fs";
+import fs, { appendFile } from "fs";
 import Jwt from "jsonwebtoken";
 const publicKey = fs.readFileSync("./public.key");
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { uploadFileCloudinaryStore as cloudinary } from "../Utils/Cloudinary.js";
-// option for more time user so define globlely
+
+/********************   Controller Business Logic   *************************/
+
+/* Cookie Secure Option Glople Define because its more  1 time used */
 const options = {
   httpOnly: true,
   secure: true,
@@ -108,8 +111,8 @@ const loginUser = asycHendler(async (req, res) => {
   // Access or refresh user
   // send cookie and res
   const { username, email, password } = req.body;
-  if (!(username || email)) {
-    throw new ApiError(400, "User not Exist at this time");
+  if (!(password && (email || username))) {
+    throw new ApiError(400, "Unauthorized Request");
   }
 
   const user = await User.findOne({
@@ -117,23 +120,17 @@ const loginUser = asycHendler(async (req, res) => {
   });
 
   if (!user) {
-    throw new ApiError(401, "User not Exist at this time");
-  } else {
-    const isPasswordValid = user.isPasswordCorrect(password);
-    if (!isPasswordValid) {
-      throw new ApiError(401, "Invalid user credentials");
-    }
+    throw new ApiError(401, "User not found");
+  }
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid user credentials");
   }
 
   const { accessToken, refreshToken } = await AccessToken_RefreshToke(user._id);
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
   const response = new ApiResponse(
     200,
     {
@@ -213,4 +210,105 @@ const refreshAccessToken = asycHendler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changePassword = asycHendler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findOne(req.user._id);
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordValid) {
+    throw new ApiError(400, "Invalid OldPassword ");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Pasword Change Successfully"));
+});
+
+const getCurrentUser = asycHendler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "get current user"));
+});
+
+const updateAccountDetails = asycHendler(async (req, res) => {
+  const { fullName, email } = req.body;
+
+  if (!fullName || !email) {
+    throw new ApiError(401, "Email or fullName are Required");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    { $set: { fullName, email } },
+    { new: true }
+  ).select("-password");
+
+  if (!user) {
+    throw new ApiError(401, "User not Found");
+  }
+  return res
+    .status(200)
+    .json(new ApiError(200, user, "user update successfully"));
+});
+
+const updateAvatarImage = asycHendler(async (req, res) => {
+  const localAvatarPath = req.file?.path;
+
+  if (!localAvatarPath) {
+    throw new ApiError(401, "Avatar file is missing");
+  }
+
+  const avatar = await cloudinary(localAvatarPath);
+
+  if (!avatar.url) {
+    throw new ApiError(401, "cloudinary Error while uploading avatar ");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.file?.path,
+    { $set: { avatar: avatar.url } },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar file upload successfully"));
+});
+
+const updateCoverImage = asycHendler(async (req, res) => {
+  const coverImageLocalPath = req.file.path;
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(401, "CoverImage file is missing or Error something");
+  }
+
+  const coverImage = await cloudinary(coverImageLocalPath);
+
+  if (!coverImage.url) {
+    throw new ApiError(401, "CoverImage not upload to Cloudinary Error");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.file?.path,
+    { $set: { coverImage: coverImage.url } },
+    { new: true }
+  );
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, user, "Cover file uploaded successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changePassword,
+  getCurrentUser,
+  updateAccountDetails,
+  updateAvatarImage,
+  updateCoverImage,
+};
