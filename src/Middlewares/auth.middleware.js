@@ -1,9 +1,12 @@
-import { Jwt } from "jsonwebtoken";
-import { ApiError } from "../Utils/ApiError";
-import asyncHendler from "../Utils/asycHendler";
+import Jwt from "jsonwebtoken";
+
+import  {ApiError}  from "../Utils/ApiError.js";
+import asyncHendler from "../Utils/asycHendler.js";
 import fs from "fs";
-import { User } from "../Models/User.model";
-const publicKey = fs.readFileSync("../public.key");
+import { User } from "../Models/User.model.js";
+const publicKey = fs.readFileSync("./public.key");
+
+
 export const verifyJwt = asyncHendler(async (req, res, next) => {
   try {
     const token =

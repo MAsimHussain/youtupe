@@ -18,7 +18,6 @@ router.post("/register",
 
 router.post("/login", loginUser)
 
-
 // Secured Routes
 router.post("/logout",verifyJwt, logoutUser)
 

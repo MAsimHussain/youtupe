@@ -2,6 +2,7 @@ import asycHendler from "../Utils/asycHendler.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { User } from "../Models/User.model.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
+import CircularJSON from "circular-json";
 import { uploadFileCloudinaryStore as cloudinary } from "../Utils/Cloudinary.js";
 const registerUser = asycHendler(async (req, res) => {
   //user details for frontend
@@ -79,16 +80,17 @@ const registerUser = asycHendler(async (req, res) => {
 const AccessToken_RefreshToke = async (userId) => {
   try {
     const user = await User.findById(userId);
-
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
-
     user.refreshToken = refreshToken;
-    await user.save(validatBeforeSave);
+
+    await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
-  } catch (error) {}
-  throw new ApiError(500, "Error occurs in AccessToken and Refresh Token");
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(500, "Error occurs in AccessToken and Refresh Token");
+  }
 };
 
 const loginUser = asycHendler(async (req, res) => {
@@ -98,49 +100,49 @@ const loginUser = asycHendler(async (req, res) => {
   // Access or refresh user
   // send cookie and res
   const { username, email, password } = req.body;
-
-  if (!username || !email) {
+  if (!(username || email)) {
     throw new ApiError(400, "User not Exist at this time");
   }
 
-  const user = await User.find({
+  const user = await User.findOne({
     $or: [{ email }, { username }],
   });
 
   if (!user) {
     throw new ApiError(401, "User not Exist at this time");
-  }
-
-  const isPasswordValid = user.isPasswordCorrect(password);
-
-  if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user Cradentials");
+  } else {
+    const isPasswordValid = user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Invalid user credentials");
+    }
   }
 
   const { accessToken, refreshToken } = await AccessToken_RefreshToke(user._id);
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 
-  const loginInUser = User.findById(user._id).select("-password -refreshToken");
 
-  const opetions = {
+  const options = {
     httpOnly: true,
-    secure,
+    secure: true,
   };
+  const response = new ApiResponse(
+    200,
+    {
+      user: loggedInUser,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      success: true,
+    },
+    "User Login Successfully!"
+  );
 
   return res
     .status(200)
-    .cookie("accessToke", accessToken, opetions)
-    .cookie("refreshToken", refreshToken, opetions)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: loginInUser,
-          accessToken,
-          refreshToken,
-        },
-        "user Login Successfully!"
-      )
-    );
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(response);
 });
 
 const logoutUser = asycHendler(async (req, res) => {
