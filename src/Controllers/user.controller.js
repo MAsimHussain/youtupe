@@ -255,7 +255,7 @@ const updateAccountDetails = asycHendler(async (req, res) => {
 
 const updateAvatarImage = asycHendler(async (req, res) => {
   const localAvatarPath = req.file?.path;
-
+console.log(localAvatarPath)
   if (!localAvatarPath) {
     throw new ApiError(401, "Avatar file is missing");
   }
@@ -303,7 +303,7 @@ const updateCoverImage = asycHendler(async (req, res) => {
 
 const getUserChannelProfile = asycHendler(async (req, res) => {
   const { username } = req.params;
-
+console.log(username)
   if (!username?.trim()) {
     throw new ApiError(402, "username is missing");
   }
@@ -337,8 +337,8 @@ const getUserChannelProfile = asycHendler(async (req, res) => {
           $size: "$subscribeTo",
         },
         isSubscribe: {
-          $cont: {
-            if: { $in: [req.user?._id, "subscribers.subscriber"] },
+          $cond: {
+            if: { $in: [req.user?._id,{ $ifNull: ["$subscribers.subscriber", []] }] },
             then: true,
             else: false,
           },
