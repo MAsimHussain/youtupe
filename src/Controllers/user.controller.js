@@ -5,8 +5,10 @@ import fs, { appendFile } from "fs";
 import Jwt from "jsonwebtoken";
 const publicKey = fs.readFileSync("./public.key");
 import { ApiResponse } from "../Utils/ApiResponse.js";
-import { uploadFileCloudinaryStore as cloudinary } from "../Utils/Cloudinary.js";
-
+import {
+  uploadFileCloudinaryStore as cloudinary,
+  cloudinaryDelete,
+} from "../Utils/Cloudinary.js";
 /********************   Controller Business Logic   *************************/
 
 /* Cookie Secure Option Glople Define because its more  1 time used */
@@ -263,7 +265,13 @@ const updateAvatarImage = asycHendler(async (req, res) => {
 
   if (!avatar.url) {
     throw new ApiError(401, "cloudinary Error while uploading avatar ");
+  } else {
+    if (req.user?.avatar) {
+      const prevAvatar = req.user.avatar.split("/").pop().split(".")[0];
+      await cloudinaryDelete(prevAvatar);
+    }
   }
+
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     { $set: { avatar: avatar.url } },
@@ -282,6 +290,15 @@ const updateCoverImage = asycHendler(async (req, res) => {
   }
 
   const coverImage = await cloudinary(coverImageLocalPath);
+
+  if (!coverImage?.url) {
+    throw new ApiError(401, "cloudinary Error while uploading Cover_Image ");
+  } else {
+    if (req.user?.coverImage) {
+      const prevAvatar = req.user.coverImage.split("/").pop().split(".")[0];
+      await cloudinaryDelete(prevAvatar);
+    }
+  }
 
   if (!coverImage.url) {
     throw new ApiError(401, "CoverImage not upload to Cloudinary Error");
