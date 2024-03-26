@@ -12,12 +12,11 @@ import {
   getWatchHistory,
 } from "../Controllers/user.controller.js";
 
+/**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
 import { verifyJwt } from "../Middlewares/auth.middleware.js";
 const router = Router();
-
-
 
 /******************** ROUTER  ************************ */
 router.post(
@@ -31,15 +30,18 @@ router.post(
 );
 router.post("/login", loginUser);
 
-
-
-/*************  Secured Routes ***************************/
+/*************  Secured Routes For Users  ***************************/
 router.post("/logout", verifyJwt, logoutUser);
 router.post("/refresh-token", refreshAccessToken);
 router.post("/change-password", verifyJwt, changePassword);
 router.get("/get-user", verifyJwt, getCurrentUser);
 router.patch("/update-user", verifyJwt, updateAccountDetails);
-router.patch("/update-avatar",verifyJwt, upload.single("avatar"),updateAvatarImage);
+router.patch(
+  "/update-avatar",
+  verifyJwt,
+  upload.single("avatar"),
+  updateAvatarImage
+);
 router.patch(
   "/update-cover-image",
   verifyJwt,
@@ -48,6 +50,15 @@ router.patch(
 );
 router.get("/channel/:username", verifyJwt, getUserChannelProfile);
 router.get("/watch-hitory", verifyJwt, getWatchHistory);
+
+
+/*************  Secured Routes For Video  ***************************/
+
+
+
+
+
+
 
 
 

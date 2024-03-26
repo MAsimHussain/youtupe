@@ -255,7 +255,6 @@ const updateAccountDetails = asycHendler(async (req, res) => {
 
 const updateAvatarImage = asycHendler(async (req, res) => {
   const localAvatarPath = req.file?.path;
-console.log(localAvatarPath)
   if (!localAvatarPath) {
     throw new ApiError(401, "Avatar file is missing");
   }
@@ -265,20 +264,18 @@ console.log(localAvatarPath)
   if (!avatar.url) {
     throw new ApiError(401, "cloudinary Error while uploading avatar ");
   }
-
   const user = await User.findByIdAndUpdate(
-    req.file?.path,
+    req.user?._id,
     { $set: { avatar: avatar.url } },
     { new: true }
   );
-
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Avatar file upload successfully"));
 });
 
 const updateCoverImage = asycHendler(async (req, res) => {
-  const coverImageLocalPath = req.file.path;
+  const coverImageLocalPath = req.file?.path;
 
   if (!coverImageLocalPath) {
     throw new ApiError(401, "CoverImage file is missing or Error something");
@@ -291,7 +288,7 @@ const updateCoverImage = asycHendler(async (req, res) => {
   }
 
   const user = await User.findByIdAndUpdate(
-    req.file?.path,
+    req.user?._id,
     { $set: { coverImage: coverImage.url } },
     { new: true }
   );
@@ -303,7 +300,6 @@ const updateCoverImage = asycHendler(async (req, res) => {
 
 const getUserChannelProfile = asycHendler(async (req, res) => {
   const { username } = req.params;
-console.log(username)
   if (!username?.trim()) {
     throw new ApiError(402, "username is missing");
   }
@@ -338,7 +334,12 @@ console.log(username)
         },
         isSubscribe: {
           $cond: {
-            if: { $in: [req.user?._id,{ $ifNull: ["$subscribers.subscriber", []] }] },
+            if: {
+              $in: [
+                req.user?._id,
+                { $ifNull: ["$subscribers.subscriber", []] },
+              ],
+            },
             then: true,
             else: false,
           },
@@ -349,6 +350,9 @@ console.log(username)
     {
       $project: {
         fullName: 1,
+        isSubscribe: 1,
+        channelSubscriberTo: 1,
+        subscriberCount: 1,
         username: 1,
         email: 1,
         avatar: 1,
@@ -359,7 +363,6 @@ console.log(username)
   if (!channel?.length) {
     throw new ApiError(402, "Channel does not exsits at this time");
   }
-
   return res
     .status(200)
     .json(new ApiResponse(200, channel[0], "Channel fetch successfully"));
