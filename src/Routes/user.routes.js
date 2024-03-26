@@ -10,8 +10,9 @@ import {
   updateCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  
 } from "../Controllers/user.controller.js";
-
+import {healthcheck} from "../Controllers/healthCheck.contorller.js"
 /**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
@@ -51,9 +52,9 @@ router.patch(
 router.get("/channel/:username", verifyJwt, getUserChannelProfile);
 router.get("/watch-hitory", verifyJwt, getWatchHistory);
 
+/*************  Secured Routes Heath checking ***************************/
 
-/*************  Secured Routes For Video  ***************************/
-
+router.get("/health-check", verifyJwt, healthcheck);
 
 
 

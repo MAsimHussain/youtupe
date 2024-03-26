@@ -1,10 +1,10 @@
 import asycHendler from "../Utils/asycHendler.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { User } from "../Models/User.model.js";
-import fs, { appendFile } from "fs";
 import Jwt from "jsonwebtoken";
 const publicKey = fs.readFileSync("./public.key");
 import { ApiResponse } from "../Utils/ApiResponse.js";
+import fs from "fs"
 import {
   uploadFileCloudinaryStore as cloudinary,
   cloudinaryDelete,
@@ -296,7 +296,7 @@ const updateCoverImage = asycHendler(async (req, res) => {
   } else {
     if (req.user?.coverImage) {
       const prevAvatar = req.user.coverImage.split("/").pop().split(".")[0];
-      await cloudinaryDelete(prevAvatar);
+      await deletC(prevAvatar);
     }
   }
 
