@@ -3,6 +3,7 @@ import  Jwt  from "jsonwebtoken";
 import  bcrypt  from "bcrypt";
 import fs from "fs";
 const privateKey = fs.readFileSync("./private.key");
+/**************** User Schema   **************/
 const userSchema = new Schema(
   {
     username: {
@@ -46,10 +47,11 @@ const userSchema = new Schema(
 
   { timestamps: true }
 );
-
+/**************** Bcrypt Password Field **************/
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
+/**************** Passwor field save to database**************/
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
@@ -59,6 +61,7 @@ userSchema.pre("save", async function (next) {
     console.log(error)
   }
 });
+/**************** generateAccessToken  **************/
 userSchema.methods.generateAccessToken = function () {
   return Jwt.sign(
     {
@@ -73,6 +76,7 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
+/**************** generateRefreshToken  **************/
 userSchema.methods.generateRefreshToken = function () {
   return Jwt.sign(
     {
@@ -85,5 +89,5 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
-
+/**************** Export User  **************/
 export const User = mongoose.model("User", userSchema);
