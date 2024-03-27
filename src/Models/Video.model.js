@@ -12,6 +12,10 @@ const videoSchema = new Schema(
           type: String,//Cloudinary
           required: true
         },
+        title: {
+          type: String,
+          required: true
+        },
         description: {
           type: String,
           required: true
@@ -26,10 +30,9 @@ const videoSchema = new Schema(
           default:0
         },
         
-      
         isPublished: {
-          type: Number,
-          default:0
+          type: Boolean,
+          default:false
         },
         owner: {
           type: Schema.Types.ObjectId,

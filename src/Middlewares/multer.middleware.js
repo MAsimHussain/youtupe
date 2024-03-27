@@ -9,7 +9,6 @@ const storage = multer.diskStorage({
     cb(null, file.originalname + "-" + uniqueSuffix);
   },
 });
-
 export const upload = multer({
   storage,
 });

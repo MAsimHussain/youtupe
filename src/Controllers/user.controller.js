@@ -4,7 +4,7 @@ import { User } from "../Models/User.model.js";
 import Jwt from "jsonwebtoken";
 const publicKey = fs.readFileSync("./public.key");
 import { ApiResponse } from "../Utils/ApiResponse.js";
-import fs from "fs"
+import fs from "fs";
 import {
   uploadFileCloudinaryStore as cloudinary,
   cloudinaryDelete,
