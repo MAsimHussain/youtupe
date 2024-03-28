@@ -19,6 +19,7 @@ import {
   updateThumbnail,
   deleteVideo,
   togglePublishStatus,
+  getAllVideos,
 } from "../Controllers/video.controller.js";
 /**************   Imports ************************ */
 import { Router } from "express";
@@ -83,6 +84,7 @@ router.patch(
 );
 router.delete("/delete-video/:id", verifyJwt, deleteVideo);
 router.patch("/publish-status/:id", verifyJwt, togglePublishStatus);
+router.get("/all-video", verifyJwt, getAllVideos);
 
 /******** Export router *********** */
 export default router;

@@ -11,8 +11,78 @@ import asyncHandler from "../Utils/asycHendler.js";
 import { videoDuration } from "@numairawan/video-duration";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //TODO: get all videos based on query, sort, pagination
+  const { page = 1, limit = 10, query, sortBy, sortType, } = req.query;
+
+  try {
+    // Parse page and limit parameters to integers
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
+
+    // Create an empty filter object initially
+    let filter = {};
+
+    // Apply query filter if query parameter is provided
+    if (query) {
+      filter = {
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { description: { $regex: query, $options: "i" } },
+        ],
+      };
+    }
+
+    // Create sort options if sortBy and sortType parameters are provided
+    let sort = {};
+    if (sortBy && sortType) {
+      sort[sortBy] = sortType === "asc" ? 1 : -1;
+    }
+
+    // Build the aggregation pipeline
+    const pipeline = [];
+
+    // Add match stage to filter documents
+    pipeline.push({ $match: filter });
+
+    // Add sort stage to sort documents
+    if (Object.keys(sort).length > 0) {
+      pipeline.push({ $sort: sort });
+    }
+
+    // Add group stage to group videos by owner
+    pipeline.push({ $group: { _id: "$owner", videos: { $push: "$$ROOT" } } });
+
+    // Add pagination stage
+    pipeline.push({ $skip: (pageNumber - 1) * pageSize });
+    pipeline.push({ $limit: pageSize });
+
+    // Execute the aggregation pipeline
+    const videoGroups = await Video.aggregate(pipeline);
+    // Flatten the array of video groups into a single array of videos
+    // console.log(videoGroups[0]);
+    const videos = videoGroups.reduce(
+      (acc, curr) => acc.concat(curr.videos),
+      []
+    );
+    // Filter videos based on owner ObjectId
+    const filteredVideos = videos.filter(
+      (video) => video.owner.toString() === req.user?._id.toString()
+    );
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          filteredVideos,
+          totalVideos: filteredVideos.length,
+          totalPages: Math.ceil(filteredVideos.length / pageSize),
+          currentPage: pageNumber,
+        },
+        "here a list of current user all videos"
+      )
+    );
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    res.status(500).json({ message: "Error fetching videos" });
+  }
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
