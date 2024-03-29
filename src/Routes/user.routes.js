@@ -21,6 +21,12 @@ import {
   togglePublishStatus,
   getAllVideos,
 } from "../Controllers/video.controller.js";
+import {
+  createTweet,
+  getUserTweets,
+  updateTweet,
+  deleteTweet,
+} from "../Controllers/tweet.controller.js";
 /**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
@@ -85,6 +91,12 @@ router.patch(
 router.delete("/delete-video/:id", verifyJwt, deleteVideo);
 router.patch("/publish-status/:id", verifyJwt, togglePublishStatus);
 router.get("/all-video", verifyJwt, getAllVideos);
+
+/******** Tweet Routs  *********** */
+router.post("/post-tweet", verifyJwt, createTweet);
+router.get("/get-tweet/:id", verifyJwt, getUserTweets);
+router.patch("/update-tweet/:id", verifyJwt, updateTweet);
+router.delete("/delete-tweet/:id", verifyJwt, deleteTweet);
 
 /******** Export router *********** */
 export default router;
