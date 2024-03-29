@@ -11,7 +11,7 @@ import asyncHandler from "../Utils/asycHendler.js";
 import { videoDuration } from "@numairawan/video-duration";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, } = req.query;
+  const { page = 1, limit = 10, query, sortBy, sortType } = req.query;
 
   try {
     // Parse page and limit parameters to integers
@@ -92,14 +92,43 @@ const publishAVideo = asyncHandler(async (req, res) => {
     throw new ApiError(401, "All field are requird!");
   }
   // console.log(username)
-  const ownerId = await User.findOne({ username: username }).select(
-    "-password -coverImage -updatedAt -createdAt -email -refreshToken -__v"
-  );
-  // console.log(ownerId)
-  if (!ownerId) {
+  // const ownerId = await User.findOne({ username: username });
+  // // console.log(ownerId)
+  // if (!ownerId) {
+  //   throw new ApiError(401, "User Id is missing");
+  // }
+  const owner = await User.aggregate([
+    {
+      $match: { username: username },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "username",
+        as: "owner",
+      },
+    },
+    {
+      $addFields: {
+        owner: {
+          $arrayElemAt: ["$owner", 0],
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        avatar: 1,
+        coverImage: 1,
+      },
+    },
+  ]);
+  const owners = owner[0];
+  if (!owners) {
     throw new ApiError(401, "User Id is missing");
   }
-
   const uploadThumbnail = req.files?.thumbnail[0].path;
   const uploadVideo = req.files?.videoFile[0].path;
 
@@ -126,7 +155,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     description,
     isPublished: isPublished,
     duration: duration.seconds, // Assign the correct duration value
-    owner: ownerId,
+    owner: owners,
   });
   const video = await newVideo.save();
   console.log("New video saved successfully.");
