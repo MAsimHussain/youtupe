@@ -34,6 +34,11 @@ import {
   deleteComment,
   getVideoComments,
 } from "../Controllers/comments.controller.js";
+
+import {
+  toggleVideoLike,
+  toggleCommentLike,toggleTweetLike,getLikedVideos
+} from "../Controllers/like.controller.js";
 /**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
@@ -109,6 +114,12 @@ router.post("/comment/:id", verifyJwt, addComment);
 router.patch("/update-comment/:id", verifyJwt, updateComment);
 router.delete("/delete-comment/:id", verifyJwt, deleteComment);
 router.get("/get-video-comment/:id", verifyJwt, getVideoComments);
+
+/******** Likes Routes  *********** */
+router.post("/videos/:id/like", verifyJwt, toggleVideoLike);
+router.post("/comments/:id/like", verifyJwt, toggleCommentLike);
+router.post("/tweets/:id/like", verifyJwt, toggleTweetLike);
+router.get("/liked-videos", verifyJwt, getLikedVideos);
 
 /******** Export router *********** */
 export default router;
