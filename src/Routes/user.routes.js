@@ -27,6 +27,13 @@ import {
   updateTweet,
   deleteTweet,
 } from "../Controllers/tweet.controller.js";
+
+import {
+  addComment,
+  updateComment,
+  deleteComment,
+  getVideoComments,
+} from "../Controllers/comments.controller.js";
 /**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
@@ -97,6 +104,11 @@ router.post("/post-tweet", verifyJwt, createTweet);
 router.get("/get-tweet/:id", verifyJwt, getUserTweets);
 router.patch("/update-tweet/:id", verifyJwt, updateTweet);
 router.delete("/delete-tweet/:id", verifyJwt, deleteTweet);
+/******** Comments Routes  *********** */
+router.post("/comment/:id", verifyJwt, addComment);
+router.patch("/update-comment/:id", verifyJwt, updateComment);
+router.delete("/delete-comment/:id", verifyJwt, deleteComment);
+router.get("/get-video-comment/:id", verifyJwt, getVideoComments);
 
 /******** Export router *********** */
 export default router;
