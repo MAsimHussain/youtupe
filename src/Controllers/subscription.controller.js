@@ -1,28 +1,76 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {User} from "../Models/User.model.js"
-import { Subscription } from "../Models/subscription.model.js"
-import {ApiError} from "../Utils/ApiError.js"
-import {ApiResponse} from "../Utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-
+import mongoose from "mongoose";
+import { Subscription } from "../Models/Subscriptions.model.js";
+import { ApiError } from "../Utils/ApiError.js";
+import { ApiResponse } from "../Utils/ApiResponse.js";
+import asyncHandler from "../Utils/asycHendler.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
-    const {channelId} = req.params
-    // TODO: toggle subscription
-})
+  const channelId = req.user?._id.toString();
+  const userId = req.user?._id.toString();
+
+  try {
+    if (
+      !mongoose.isValidObjectId(channelId) ||
+      !mongoose.isValidObjectId(userId)
+    ) {
+      throw new ApiError(400, "User ID and Channel ID are invalid");
+    }
+
+    const existingSubscription = await Subscription.findOne({
+      channel: channelId,
+      subscriber: userId,
+    });
+
+    if (existingSubscription) {
+      await Subscription.deleteOne({ channel: channelId, subscriber: userId });
+      return res
+        .status(200)
+        .json(new ApiResponse(200, existingSubscription, "Unsubscribed successfully"));
+    } else {
+      const subscribed = new Subscription({
+        channel: channelId,
+        subscriber: userId,
+      });
+
+      await subscribed.save();
+      return res
+        .status(200)
+        .json(new ApiResponse(200, subscribed, "Subscribed successfully"));
+    }
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(400, "User ID and Channel ID are invalid");
+  }
+});
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-    const {channelId} = req.params
-})
+  const channelId = req.user?._id.toString();
+  try {
+    if (!mongoose.isValidObjectId(channelId)) {
+      throw new ApiError(400, "Channel ID is invalid");
+    }
 
-// controller to return channel list to which user has subscribed
+    const subscribers = await Subscription.find({
+      channel: channelId,
+    }).populate("subscriber", "username");
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          subscribers,
+          "All subscribers fetched successfully"
+        )
+      );
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(400, "Channel ID is invalid");
+  }
+});
+
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { subscriberId } = req.params
-})
+  const { subscriberId } = req.params;
+});
 
-export {
-    toggleSubscription,
-    getUserChannelSubscribers,
-    getSubscribedChannels
-}
+export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };

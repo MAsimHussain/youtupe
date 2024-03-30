@@ -39,6 +39,7 @@ import {
   toggleVideoLike,
   toggleCommentLike,toggleTweetLike,getLikedVideos
 } from "../Controllers/like.controller.js";
+import {toggleSubscription,getUserChannelSubscribers} from "../Controllers/subscription.controller.js"
 /**************   Imports ************************ */
 import { Router } from "express";
 import { upload } from "../Middlewares/multer.middleware.js";
@@ -120,6 +121,11 @@ router.post("/videos/:id/like", verifyJwt, toggleVideoLike);
 router.post("/comments/:id/like", verifyJwt, toggleCommentLike);
 router.post("/tweets/:id/like", verifyJwt, toggleTweetLike);
 router.get("/liked-videos", verifyJwt, getLikedVideos);
+
+/******** toggle Subscription Routes  *********** */
+
+router.post("/subscribed", verifyJwt, toggleSubscription);
+router.get("/channel-subscriber", verifyJwt, getUserChannelSubscribers);
 
 /******** Export router *********** */
 export default router;
