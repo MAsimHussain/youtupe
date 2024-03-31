@@ -22,6 +22,8 @@ import healthRouters from "./Routes/healthCheck.routes.js";
 import likeRouters from "./Routes/like.routes.js";
 import videoRoutes from "./Routes/video.routes.js";
 import subscriptionRoutes from "./Routes/subscriptions.routes.js";
+import playlistRoutes from "./Routes/playlist.routes.js";
+
 
 /************  ALL ROUTS ************************ */
 app.use("/api/v1/users", userRouters);
@@ -31,5 +33,6 @@ app.use("/api/v1/h", healthRouters);
 app.use("/api/v1/l", likeRouters);
 app.use("/api/v1/v", videoRoutes);
 app.use("/api/v1/s", subscriptionRoutes);
+app.use("/api/v1/playlist", playlistRoutes);
 
 export default app;

@@ -10,9 +10,13 @@ import {
   removeVideoFromPlaylist,
   deletePlaylist,
   updatePlaylist,
-} from "../Controllers/playlist.controller";
+} from "../Controllers/playlist.controller.js";
 
 /************************ Routes or Endpoint PlayList ******************* */
-router.post("/endpoint", verifyJwt, createPlaylist);
+router.post("/creat-playlist/:id", verifyJwt, createPlaylist);
+router.get("/get-playlists/:id", verifyJwt, getUserPlaylists);
+router.get("/get-playlistbyId/:id", verifyJwt, getPlaylistById);
+router.delete("/delete-playlist/:id", verifyJwt, deletePlaylist);
+router.patch("/update-playlist/:id", verifyJwt, updatePlaylist);
 
 export default router;

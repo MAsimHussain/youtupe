@@ -7,7 +7,7 @@ import {
   uploadFileCloudinaryStore as uploadOnCloudinary,
   cloudinaryDelete,
 } from "../Utils/Cloudinary.js";
-import asyncHandler from "../Utils/asycHendler.js";
+import asyncHandler from "../Utils/asycHandler.js";
 import { videoDuration } from "@numairawan/video-duration";
 
 const getAllVideos = asyncHandler(async (req, res) => {

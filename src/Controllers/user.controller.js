@@ -1,4 +1,4 @@
-import asycHendler from "../Utils/asycHendler.js";
+import asycHendler from "../Utils/asycHandler.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { User } from "../Models/User.model.js";
 import Jwt from "jsonwebtoken";
