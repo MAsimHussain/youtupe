@@ -1,3 +1,8 @@
+/**************   Imports ************************ */
+import { Router } from "express";
+import { upload } from "../Middlewares/multer.middleware.js";
+import { verifyJwt } from "../Middlewares/auth.middleware.js";
+const router = Router();
 import {
   loginUser,
   logoutUser,
@@ -11,13 +16,6 @@ import {
   getUserChannelProfile,
   getWatchHistory,
 } from "../Controllers/user.controller.js";
-
-
-/**************   Imports ************************ */
-import { Router } from "express";
-import { upload } from "../Middlewares/multer.middleware.js";
-import { verifyJwt } from "../Middlewares/auth.middleware.js";
-const router = Router();
 
 /******************** ROUTER  ************************ */
 router.post(
@@ -51,9 +49,6 @@ router.patch(
 );
 router.get("/channel/:username", verifyJwt, getUserChannelProfile);
 router.get("/watch-hitory", verifyJwt, getWatchHistory);
-
-
-
 
 /******** Export router *********** */
 export default router;
