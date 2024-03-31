@@ -25,7 +25,13 @@ const toggleSubscription = asyncHandler(async (req, res) => {
       await Subscription.deleteOne({ channel: channelId, subscriber: userId });
       return res
         .status(200)
-        .json(new ApiResponse(200, existingSubscription, "Unsubscribed successfully"));
+        .json(
+          new ApiResponse(
+            200,
+            existingSubscription,
+            "Unsubscribed successfully"
+          )
+        );
     } else {
       const subscribed = new Subscription({
         channel: channelId,
@@ -53,7 +59,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
     const subscribers = await Subscription.find({
       channel: channelId,
-    }).populate("subscriber", "username");
+    }).populate("channel", "username");
     return res
       .status(200)
       .json(
@@ -70,7 +76,23 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 });
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-  const { subscriberId } = req.params;
+  const subscriberId = req.user?._id.toString();
+
+  try {
+    if (!mongoose.isValidObjectId(subscriberId)) {
+      throw new ApiError(400, "Channel ID is invalid");
+    }
+    const subscriber = await Subscription.find({
+      subscriber: subscriberId,
+    }).populate("subscriber", "username");
+
+    return res
+      .status(200)
+      .json(new ApiError(200, subscriber, "fetch all subscriber successfully"));
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(400, "Subscriber ID is invalid");
+  }
 });
 
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
